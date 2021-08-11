@@ -1,0 +1,37 @@
+{
+  "name": "nautlol",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node dst/index.js",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fazilz/nautlol"
+  },
+  "author": "Fazil Zuhaib",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fazilz/nautlol/issues"
+  },
+  "homepage": "https://github.com/fazilz/nautlol#readme",
+  "dependencies": {
+    "@typegoose/typegoose": "^8.1.1",
+    "apollo-server": "^3.1.2",
+    "class-validator": "^0.13.1",
+    "graphql": "^15.5.1",
+    "mongoose": "^5.13.6",
+    "nodemon": "^2.0.12",
+    "puppeteer": "^10.1.0",
+    "reflect-metadata": "^0.1.13",
+    "type-graphql": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^16.4.13",
+    "ts-node": "^10.2.0",
+    "typescript": "^4.3.5"
+  }
+}
