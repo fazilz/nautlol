@@ -2,10 +2,10 @@ import { Field, ObjectType } from 'type-graphql';
 
 @ObjectType()
 export class Change {
-    @Field()
+    @Field({ nullable: true })
     context: string;
 
-    @Field()
+    @Field(() => [String], { nullable: true })
     changes: string[];
 
     @Field()

@@ -1,13 +1,24 @@
 import "reflect-metadata";
 import { ApolloServer } from 'apollo-server';
-import { resolvers } from './graphql/resolvers'
-import { typeDefs } from './graphql/schema'
+import { UnitResolver } from './resolvers/unit'
+import mongoose from 'mongoose';
+import { buildSchema} from "type-graphql";
 
-// The ApolloServer constructor requires two parameters: your schema
-// definition and your set of resolvers.
-const server = new ApolloServer({ typeDefs, resolvers });
+const startServer = async () => {
+  await mongoose
+  .connect("mongodb://127.0.0.1:27017", { useNewUrlParser: true, dbName: 'nautlol', useUnifiedTopology: true})
+  .then(()=>{
+    console.log('connected to mongodb')
+  });
 
-// The `listen` method launches a web server.
-server.listen().then(({ url } : {url: String}) => {
-  console.log(`Server ready at ${url}`);
-});
+  const schema = await buildSchema({
+    resolvers: [UnitResolver]
+  });
+  const server = new ApolloServer({ schema });
+  server.listen().then(({ url } : {url: String}) => {
+    console.log(`Server ready at ${url}`);
+  });
+
+}
+
+startServer();
