@@ -1,21 +1,27 @@
 import { prop as Property, getModelForClass } from "@typegoose/typegoose";
-import { ObjectId } from "mongodb";
-import { Field, ID, ObjectType } from "type-graphql";
-import { Change } from "./Change";
+import { Field, ObjectType } from "type-graphql";
 
 @ObjectType()
 export class Unit {
 
-    @Field(()=> ID)
-    readonly _id: ObjectId;
+    // @Field(()=> ID)
+    // readonly _id: ObjectId;
 
     @Field()
     @Property({ required: true })
     title: string;
-    
-    @Field(() => [Change], { nullable: true})
+ 
+    @Field({ nullable: true })
     @Property()
-    patch_changes: Change[];
+    context: string;
+
+    @Field(() => [String], { nullable: true })
+    @Property()
+    changes: string[];
+
+    @Field()
+    @Property({ required: true })
+    patch: number;
 };
 
 export const UnitModel = getModelForClass(Unit);
