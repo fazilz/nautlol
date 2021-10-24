@@ -1,5 +1,6 @@
 import { prop as Property, getModelForClass } from "@typegoose/typegoose";
 import { Field, ObjectType } from "type-graphql";
+import { Attribute } from "./Attribute";
 
 @ObjectType()
 export class Unit {
@@ -15,9 +16,9 @@ export class Unit {
     @Property()
     context: string;
 
-    @Field(() => [String], { nullable: true })
+    @Field(() => [Attribute], { nullable: true })
     @Property()
-    changes: string[];
+    changes: Attribute[];
 
     @Field()
     @Property({ required: true })

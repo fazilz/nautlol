@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer'
 import { Unit, UnitModel } from './entity/Unit';
+import { Attribute } from './entity/Attribute';
 import { PatchModel } from './entity/Patch';
 import { mongoose } from '@typegoose/typegoose';
 
@@ -14,7 +15,7 @@ function processSingleUnit(unit: Element, patch: number){
     //children [0] is the item image.
     const title = (children[1] as HTMLElement).innerText.toLowerCase();
     const context = (children[2] as HTMLElement).innerText;
-    const changes = children.slice(3).map((e) => (e as HTMLElement).innerText);
+    const changes = children.slice(3).map(processAttributeChange);
     console.log("processed: ", title);
     return {
         title,
@@ -22,6 +23,24 @@ function processSingleUnit(unit: Element, patch: number){
         changes,
         patch
     };
+}
+
+function processAttributeChange(attribute: Element): Attribute{
+    const children = Array.from(attribute.children);
+    // Usual Case: we have attribute, attribute-before, change-indicator and attribute-after
+    // Some Cases: only 2, usually attribute and attribute-after for changes
+    //             only 2, usually attribute and attribute-removed for removals
+    if (children.length == 4) {
+        return {
+            attribute: (children[0] as HTMLElement).innerText,
+            before: (children[1] as HTMLElement).innerText,
+            after: (children[3] as HTMLElement).innerText
+        }
+    }
+    return {
+        attribute: (children[0] as HTMLElement).innerText,
+        before: (children[1] as HTMLElement).innerText
+    }
 }
 
 function processMultipleUnitBlock (block: Element, patch: number) {
@@ -33,7 +52,7 @@ function processMultipleUnitBlock (block: Element, patch: number) {
     const UNIT_HACK = {
         title: '',
         context,
-        changes: <string[]>[],
+        changes: <Attribute[]>[],
         patch
     }
     let unit = {...UNIT_HACK};
@@ -43,11 +62,11 @@ function processMultipleUnitBlock (block: Element, patch: number) {
             unit.title = (element as HTMLElement).innerText.toLowerCase();
             console.log("processed ", unit.title);
         } else if (element.tagName === "DIV"){
-            unit.changes.push((element as HTMLElement).innerText);
+            unit.changes.push(processAttributeChange(element));
         } else {
             // HR divider
             units.push(unit);
-            unit = {...UNIT_HACK, changes: <string[]>[]};
+            unit = {...UNIT_HACK, changes: <Attribute[]>[]};
         }
     });
     // last unit doesn't have HR divider so doesn't get added
@@ -96,18 +115,18 @@ function processUnits(header: Element ){
 }
 
 
-export const scrape = async () => {
+export const scrape = async (URL: string) => {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    const base_URL = 'https://na.leagueoflegends.com/en-us/news/game-updates/patch-11-';
-    const patch_minor = 1;
-    const notes = 'notes/';
-    let URL = base_URL + patch_minor + '-' + notes;
     await page.setViewport({
         width: 1200, height: 800,
         deviceScaleFactor: 1
     });
     await page.goto(URL, {waitUntil: 'networkidle2'});
+    const page_exists = await page.evaluate(() => (document.getElementsByTagName('h1').length > 0));
+    if (!page_exists){
+        return false;
+    }
     // await page.exposeFunction('getUnits', e => getUnits(e));
     await page.addScriptTag({content: `${processUnits} ${unitStructure} ${processSingleUnit} ${processMultipleUnitBlock}`});
     const items = await page.evaluate(() => {
@@ -124,6 +143,7 @@ export const scrape = async () => {
     UnitModel.insertMany(items).then(()=>{
         console.log(`inserted ${items.length} items, for patch: 11.1`);
     });
+    return true;
 };
 
 (async () => {
@@ -132,5 +152,12 @@ export const scrape = async () => {
     .then(()=>{
       console.log('connected to mongodb')
     });
-    scrape();
+    const base_URL = 'https://na.leagueoflegends.com/en-us/news/game-updates/patch-11-';
+    let patch_minor = 1;
+    const notes = 'notes/';
+    let URL = base_URL + patch_minor + '-' + notes;
+    while(scrape(URL)) {
+        patch_minor += 1;
+        URL = base_URL + patch_minor + '-' + notes;
+    };
 })();
