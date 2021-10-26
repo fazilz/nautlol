@@ -4,7 +4,7 @@ import { Attribute } from './entity/Attribute';
 import { Patch, PatchModel } from './entity/Patch';
 import { mongoose } from '@typegoose/typegoose';
 
-function processSingleUnit(unit: Element, patch: number): Unit {
+function processSingleUnit(unit: Element, patch: string): Unit {
     // unit div (no class or id) with the following structure:
     // anchor  with the item image
     // h3 -- item title
@@ -46,7 +46,7 @@ function processAttributeChange(attribute: Element): Attribute | undefined {
     return undefined;
 }
 
-function processMultipleUnitBlock (block: Element, patch: number) : Unit[] {
+function processMultipleUnitBlock (block: Element, patch: string) : Unit[] {
     let elements = Array.from(block.children);
     const context = (elements[1] as HTMLElement).innerText;
     if (elements[0].tagName == 'A')
@@ -78,7 +78,7 @@ function processMultipleUnitBlock (block: Element, patch: number) : Unit[] {
     return units;
 }
 
-function unitStructure(item: Element, patch: number) {
+function unitStructure(item: Element, patch: string) {
     // remove the outer .content-border div
     // remove the .white-stone accent-before div
     const container = item.firstElementChild?.firstElementChild;
@@ -100,7 +100,7 @@ function unitStructure(item: Element, patch: number) {
 }
 
 
-function processUnits(header: Element, patch: number){
+function processUnits(header: Element, patch: string){
     let itemElements: Element[] = [];
     while (header.nextElementSibling != null && header.nextElementSibling.className !== 'header-primary') {
         header = header.nextElementSibling;
@@ -119,7 +119,7 @@ function processUnits(header: Element, patch: number){
 }
 
 
-export const scrape = async (URL: string, patch: number) => {
+export const scrape = async (URL: string, patch: string) => {
     console.log(`entering ${URL}`)
     const browser = await puppeteer.launch();
     console.log('started puppeteer')
@@ -164,7 +164,7 @@ export const scrape = async (URL: string, patch: number) => {
     let loop = true;
     while(loop) {
         let URL = `https://na.leagueoflegends.com/en-us/news/game-updates/patch-11-${patch_minor}-notes/`;
-        loop = await scrape(URL, Number(`11.${patch_minor}`));
+        loop = await scrape(URL, `11.${patch_minor}`);
         patch_minor += 1;
     };
 })();
