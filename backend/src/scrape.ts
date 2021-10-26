@@ -1,10 +1,10 @@
 import puppeteer from 'puppeteer'
 import { Unit, UnitModel } from './entity/Unit';
 import { Attribute } from './entity/Attribute';
-import { PatchModel } from './entity/Patch';
+import { Patch, PatchModel } from './entity/Patch';
 import { mongoose } from '@typegoose/typegoose';
 
-function processSingleUnit(unit: Element, patch: number){
+function processSingleUnit(unit: Element, patch: number): Unit {
     // unit div (no class or id) with the following structure:
     // anchor  with the item image
     // h3 -- item title
@@ -15,7 +15,7 @@ function processSingleUnit(unit: Element, patch: number){
     //children [0] is the item image.
     const title = (children[1] as HTMLElement).innerText.toLowerCase();
     const context = (children[2] as HTMLElement).innerText;
-    const changes = children.slice(3).map(processAttributeChange);
+    const changes : Attribute[] = children.slice(3).map(processAttributeChange).filter((e): e is Attribute => !!e);
     console.log("processed: ", title);
     return {
         title,
@@ -25,48 +25,52 @@ function processSingleUnit(unit: Element, patch: number){
     };
 }
 
-function processAttributeChange(attribute: Element): Attribute{
+function processAttributeChange(attribute: Element): Attribute | undefined {
     const children = Array.from(attribute.children);
     // Usual Case: we have attribute, attribute-before, change-indicator and attribute-after
     // Some Cases: only 2, usually attribute and attribute-after for changes
     //             only 2, usually attribute and attribute-removed for removals
-    if (children.length == 4) {
+    if (children.length > 0){
+        if (children.length == 4) {
+            return {
+                attribute: (children[0] as HTMLElement).innerText,
+                before: (children[1] as HTMLElement).innerText,
+                after: (children[3] as HTMLElement).innerText
+            };
+        }
         return {
             attribute: (children[0] as HTMLElement).innerText,
-            before: (children[1] as HTMLElement).innerText,
-            after: (children[3] as HTMLElement).innerText
-        }
+            before: (children[1] as HTMLElement).innerText
+        };
     }
-    return {
-        attribute: (children[0] as HTMLElement).innerText,
-        before: (children[1] as HTMLElement).innerText
-    }
+    return undefined;
 }
 
-function processMultipleUnitBlock (block: Element, patch: number) {
+function processMultipleUnitBlock (block: Element, patch: number) : Unit[] {
     let elements = Array.from(block.children);
     const context = (elements[1] as HTMLElement).innerText;
+    if (elements[0].tagName == 'A')
+        return [];
     elements = elements.slice(3);
-    // I wasn't able to find any docs on how to expose types to puppetteer.
-    // HACK to make the type to work with puppeteer
-    const UNIT_HACK = {
+    let unit: Unit = {
         title: '',
         context,
         changes: <Attribute[]>[],
         patch
-    }
-    let unit = {...UNIT_HACK};
+    };
     let units: Unit[] = [];
     elements.forEach((element) => {
         if (element.tagName === "H4" || element.tagName === "H3"){
             unit.title = (element as HTMLElement).innerText.toLowerCase();
             console.log("processed ", unit.title);
         } else if (element.tagName === "DIV"){
-            unit.changes.push(processAttributeChange(element));
+            const c = processAttributeChange(element);
+            if (c)
+                unit.changes.push(c);
         } else {
             // HR divider
             units.push(unit);
-            unit = {...UNIT_HACK, changes: <Attribute[]>[]};
+            unit = {...unit, changes: <Attribute[]>[]};
         }
     });
     // last unit doesn't have HR divider so doesn't get added
@@ -96,7 +100,7 @@ function unitStructure(item: Element, patch: number) {
 }
 
 
-function processUnits(header: Element ){
+function processUnits(header: Element, patch: number){
     let itemElements: Element[] = [];
     while (header.nextElementSibling != null && header.nextElementSibling.className !== 'header-primary') {
         header = header.nextElementSibling;
@@ -104,7 +108,7 @@ function processUnits(header: Element ){
     }
     let units: Unit[] = [];
     itemElements.forEach((item) => {
-        const processed = unitStructure(item, 11.1);
+        const processed = unitStructure(item, patch);
         if (Array.isArray(processed)){
             units = units.concat(processed);
         } else if (processed !== null){
@@ -115,8 +119,10 @@ function processUnits(header: Element ){
 }
 
 
-export const scrape = async (URL: string) => {
+export const scrape = async (URL: string, patch: number) => {
+    console.log(`entering ${URL}`)
     const browser = await puppeteer.launch();
+    console.log('started puppeteer')
     const page = await browser.newPage();
     await page.setViewport({
         width: 1200, height: 800,
@@ -128,20 +134,22 @@ export const scrape = async (URL: string) => {
         return false;
     }
     // await page.exposeFunction('getUnits', e => getUnits(e));
-    await page.addScriptTag({content: `${processUnits} ${unitStructure} ${processSingleUnit} ${processMultipleUnitBlock}`});
-    const items = await page.evaluate(() => {
+    await page.addScriptTag({
+        content: `${processUnits} ${unitStructure} ${processSingleUnit} ${processMultipleUnitBlock} ${processAttributeChange}`
+    });
+    const items = await page.evaluate((patch) => {
         const titles = document.querySelectorAll(".header-primary");
         const itemHeader = Array.from(titles).filter((e) => {
             return (e as HTMLElement).innerText.toLowerCase() === 'items'
         })[0];
         if (itemHeader.nextElementSibling != null){
-            return processUnits(itemHeader.nextElementSibling);
+            return processUnits(itemHeader.nextElementSibling, patch);
         }
         return [];
-    });
+    }, patch);
     browser.close();
     UnitModel.insertMany(items).then(()=>{
-        console.log(`inserted ${items.length} items, for patch: 11.1`);
+        console.log(`inserted ${items.length} items, for url: ${URL}`);
     });
     return true;
 };
@@ -152,12 +160,11 @@ export const scrape = async (URL: string) => {
     .then(()=>{
       console.log('connected to mongodb')
     });
-    const base_URL = 'https://na.leagueoflegends.com/en-us/news/game-updates/patch-11-';
-    let patch_minor = 1;
-    const notes = 'notes/';
-    let URL = base_URL + patch_minor + '-' + notes;
-    while(scrape(URL)) {
+    let patch_minor = 2;
+    let loop = true;
+    while(loop) {
+        let URL = `https://na.leagueoflegends.com/en-us/news/game-updates/patch-11-${patch_minor}-notes/`;
+        loop = await scrape(URL, Number(`11.${patch_minor}`));
         patch_minor += 1;
-        URL = base_URL + patch_minor + '-' + notes;
     };
 })();
