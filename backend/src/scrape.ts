@@ -160,7 +160,7 @@ export const scrape = async (URL: string, patch: string) => {
     .then(()=>{
       console.log('connected to mongodb')
     });
-    let patch_minor = 2;
+    let patch_minor = 1;
     let loop = true;
     while(loop) {
         let URL = `https://na.leagueoflegends.com/en-us/news/game-updates/patch-11-${patch_minor}-notes/`;
