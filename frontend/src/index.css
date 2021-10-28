@@ -11,3 +11,60 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+section {
+  background-color: rgb(0, 9, 19);
+  color: rgb(255, 255, 255);
+  padding: 25px 0;
+}
+.blockquote {
+  /* margin: 7.14286% 7.14286% 3.57143%; */
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.blockquote::after {
+  position: relative;
+  top: 0.35em;
+  display: inline-block;
+  color: black;
+  /* color: rgb(93, 97, 102); */
+  font-size: 2.5em;
+  line-height: 0;
+}
+
+.content-border {
+  position: relative;
+  border: 1px solid rgb(36, 44, 54);
+  margin: 3.57143%;
+  padding: 3.57143%;
+}
+
+div.attribute-change {
+  margin-left: 14.2857%;
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.attribute {
+  text-transform: uppercase;
+}
+.attribute-before {
+  color: rgb(134, 134, 134);
+  text-decoration: line-through;
+}
+/* .attribute-after {
+  text-transform: uppercase;
+} */
+.attribute::after {
+  content: ":";
+  margin-right: 5px;
+}
+
+a {
+  color:rgb(255, 255, 255); 
+  text-decoration: underline;
+}
+
+a:hover {
+  text-decoration: none;
+}
