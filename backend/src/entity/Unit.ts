@@ -22,7 +22,7 @@ export class Unit {
 
     @Field()
     @Property({ required: true })
-    patch: number;
+    patch: string;
 };
 
 export const UnitModel = getModelForClass(Unit);
