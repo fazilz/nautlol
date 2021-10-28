@@ -1,0 +1,51 @@
+[{
+  "_id": {
+    "$oid": "617891027a0f4530089b2ade"
+  },
+  "changes": [
+    {
+      "attribute": "THIRSTING SLASH DAMAGE",
+      "before": "110% AD",
+      "after": "100% AD"
+    },
+    {
+      "attribute": "THIRSTING SLASH HEAL",
+      "before": "20% AD (+12% missing health)",
+      "after": "25% AD (+12% missing health) (heal is now calculated sequentially for each champion hit, meaning there are diminishing returns on hitting multiple champions)"
+    }
+  ],
+  "title": "goredrinker",
+  "context": " We heard players' concerns that we added too much burst damage into the new items; Mythics in particular. So we're pulling back specifically on those since that's where a lot of the systemic damage was added. This is intended to keep the power level of the items neutral, trading more up-front burst for stats instead. ",
+  "patch": "11.1",
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "6178910d7a0f4530089b2af1"
+  },
+  "changes": [
+    {
+      "attribute": "THIRSTING SLASH HEAL",
+      "before": "25% AD + 12% missing health",
+      "after": "25% AD + 8% missing Health"
+    }
+  ],
+  "title": "goredrinker",
+  "context": " When building sustain, players should be feeling the effects of a real trade-off, usually in the form of damage. However, certain items with omnivamp (particularly Goredrinker and Ravenous Hydra) are feeling particularly overpowered due to less of a trade-off in damage. We're going through and making adjustments to those items, hitting their early game power specifically. ",
+  "patch": "11.3",
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "617891397a0f4530089b2b21"
+  },
+  "changes": [
+    {
+      "attribute": "THIRSTING SLASH HEALING",
+      "before": "25% AD (+8% of missing health)",
+      "after": "25% AD (+10% of missing health)"
+    }
+  ],
+  "title": "goredrinker",
+  "context": " Goredrinker has been on the weaker end of things for a while now and has been phasing out of fighter builds. Giving it a fighting chance by bumping up its healing. ",
+  "patch": "11.10",
+  "__v": 0
+}]
