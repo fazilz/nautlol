@@ -8,7 +8,7 @@ export const Change: React.FC<PatchChange> = ({
     const patch_url = `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${dashed}-notes/#patch-items`
     return (
     <div className='content-border'>
-        <a href={patch_url}><h3>{patch}</h3></a>
+        <h3><a href={patch_url}>{patch}</a></h3>
         <blockquote className='blockquote'>{context}</blockquote>
         {changes.map((change, i) => (
             <div className='attribute-change' key={i}>
