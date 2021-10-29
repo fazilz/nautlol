@@ -5,6 +5,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: rgb(0, 9, 19);
 }
 
 code {
@@ -12,7 +13,6 @@ code {
     monospace;
 }
 section {
-  background-color: rgb(0, 9, 19);
   color: rgb(255, 255, 255);
   padding: 25px 0;
 }
@@ -39,23 +39,23 @@ section {
   padding: 3.57143%;
 }
 
-div.attribute-change {
+.attribute-change {
   margin-left: 14.2857%;
   font-size: 0.75rem;
   line-height: 1.6;
 }
 
-.attribute {
+.attribute-name, .attribute {
   text-transform: uppercase;
 }
 .attribute-before {
   color: rgb(134, 134, 134);
   text-decoration: line-through;
 }
-/* .attribute-after {
+.attribute-value {
   text-transform: uppercase;
-} */
-.attribute::after {
+}
+.attribute-name::after, .attribute::after {
   content: ":";
   margin-right: 5px;
 }
@@ -67,4 +67,19 @@ a {
 
 a:hover {
   text-decoration: none;
+}
+
+ul {
+  list-style: none;
+  display: inline-block;
+}
+
+section ul li {
+  margin-bottom: 0.75rem;
+}
+
+
+.page {
+  display: flex;
+  margin: 1vw;
 }
