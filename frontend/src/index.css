@@ -6,6 +6,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: rgb(0, 9, 19);
+  color:rgb(255, 255, 255); 
 }
 
 code {
@@ -61,7 +62,7 @@ section {
 }
 
 a {
-  color:rgb(255, 255, 255); 
+ 
   text-decoration: underline;
 }
 
@@ -82,4 +83,18 @@ section ul li {
 .page {
   display: flex;
   margin: 1vw;
+}
+
+
+.all_items {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.item_name {
+  display: block;
+  margin: 1rem;
+  border: 0.2rem solid rgb(134, 134, 134);
+  padding: 0.75rem;
+  text-transform: uppercase;
 }
