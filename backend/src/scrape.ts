@@ -1,8 +1,9 @@
 import puppeteer from 'puppeteer'
 import { Unit, UnitModel } from './entity/Unit';
 import { Attribute } from './entity/Attribute';
-import { Patch, PatchModel } from './entity/Patch';
+import { ItemModel } from './entity/Item';
 import { mongoose } from '@typegoose/typegoose';
+
 
 function processSingleUnit(unit: Element, patch: string): Unit {
     // unit div (no class or id) with the following structure:
@@ -55,7 +56,7 @@ function processMultipleUnitBlock (block: Element, patch: string) : Unit[] {
     let unit: Unit = {
         title: '',
         context,
-        changes: <Attribute[]>[],
+        changes: [],
         patch
     };
     let units: Unit[] = [];
@@ -70,7 +71,7 @@ function processMultipleUnitBlock (block: Element, patch: string) : Unit[] {
         } else {
             // HR divider
             units.push(unit);
-            unit = {...unit, changes: <Attribute[]>[]};
+            unit = {...unit, changes: []};
         }
     });
     // last unit doesn't have HR divider so doesn't get added
@@ -119,6 +120,27 @@ function processUnits(header: Element, patch: string){
 }
 
 
+function itemChanges(items: Unit[]){
+    // let changes[]
+    // items.forEach((item, i) => {
+
+    // });
+    return items.map((item) => {
+        let attributes = {}
+        item.changes.forEach((change) => {
+            attributes[change.attribute] = change.after ?? change.before;
+        })
+        return {
+            updateOne: {
+                filter: {"title": item.title},
+                update: {...attributes},
+                upsert: true
+            }
+        }
+    });
+}
+
+
 export const scrape = async (URL: string, patch: string) => {
     console.log(`entering ${URL}`)
     const browser = await puppeteer.launch();
@@ -148,13 +170,18 @@ export const scrape = async (URL: string, patch: string) => {
         return [];
     }, patch);
     browser.close();
-    UnitModel.insertMany(items).then(()=>{
-        console.log(`inserted ${items.length} items, for url: ${URL}`);
-    });
+    // await UnitModel.insertMany(items).then(()=>{
+    //     console.log(`inserted ${items.length} items, for url: ${URL}`);
+    // });
+
+    // await ItemModel.bulkWrite(itemChanges(items))
+    // .then(()=> {
+    //     console.log(`Inserted Items for patch ${patch}`);
+    // });
     return true;
 };
 
-(async () => {
+(async() => {
     await mongoose
     .connect("mongodb://127.0.0.1:27017", { useNewUrlParser: true, dbName: 'nautlol', useUnifiedTopology: true})
     .then(()=>{
@@ -162,9 +189,10 @@ export const scrape = async (URL: string, patch: string) => {
     });
     let patch_minor = 1;
     let loop = true;
-    while(loop) {
+    while(loop && (patch_minor < 11)) {
         let URL = `https://na.leagueoflegends.com/en-us/news/game-updates/patch-11-${patch_minor}-notes/`;
         loop = await scrape(URL, `11.${patch_minor}`);
+        console.log(`exited ${patch_minor}`)
         patch_minor += 1;
     };
 })();
